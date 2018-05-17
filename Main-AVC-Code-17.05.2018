@@ -7,7 +7,7 @@ using namespace std;
 bool DoWindyLine = true;
 bool DoLineMaze = true;
 
-int turn_left90(){
+int turn_left90(){ //hopfully will trun the robot 90degrees to the left
 
 	set_motor (1, 60);
 	set_motor (2, -60);
@@ -18,7 +18,7 @@ int turn_left90(){
 	return 0;
 }
 
-int turn_right90(){
+int turn_right90(){ //hopfully will trun the robot 90degrees to the right
 
 	set_motor (1, -60);
 	set_motor (2, 60);
@@ -142,6 +142,7 @@ int line_Maze () {
 	int sLeft; //this is the speed of the left motor
 	int sRight; //this is the speed of the right motor
 	
+	String previousTurn = "Right";
 	
 	while(DoLineMaze){	
 		take_picture(); // takes the picture
@@ -176,7 +177,7 @@ int line_Maze () {
 				sRight += 20;
 			}
 			
-			if (WOrBTotal <= WOrBMin) { // if its majority black then go back
+			if (WOrBTotal <= WOrBMin) { // if its majority black
 				if (previousTurn == "Right") {
 					turn_left90();
 					previousTurn = "Left";
@@ -189,7 +190,7 @@ int line_Maze () {
 				set_motor (1, sLeft);
 				set_motor (2, sRight);
 				cout << "GO FORWARD W OR B TOTAL " << WOrBTotal << "\n";
-			} else { //if its mostly white stop (its at the end of the line (where it cahnges from wiggly line to straight))
+			} else { //if it s mostly white 
 				if (previousTurn == "Right") {
 					turn_left90();
 					previousTurn = "Left";
