@@ -1,0 +1,211 @@
+#include <stdio.h>
+#include <time.h>
+#include "E101.h"
+#include <iostream>
+using namespace std;
+
+bool DoWindyLine = true;
+bool DoLineMaze = true;
+
+int turn_left90(){
+
+	set_motor (1, 60);
+	set_motor (2, -60);
+	
+	sleep1(1, 0);
+	set_motor (1,0);
+	set_motor (2,0);
+	return 0;
+}
+
+int turn_right90(){
+
+	set_motor (1, -60);
+	set_motor (2, 60);
+	
+	sleep1(1, 0);
+	set_motor (1,0);
+	set_motor (2,0);
+	return 0;
+}
+
+int line_detection () {	
+
+	int Red = 0; //this is the value of the rex pixel
+	int Green = 0; //this is the value of the Green pixel
+	int Blue = 0; //this is the value of the Blue pixel
+	int White = 0; //this is the overall white value
+	
+	int MinWhite = 100; // all values over this is considered white
+	
+	int WOrNot; // if the pixel is white its a 1 if not its a 0
+	int WOrBTotal; //this is the over all amout of white in the pic 360 would be all white 0 would be all black
+	int WOrBMin = 40; //if there are less than <<< then it will be considered all black
+	int WOrBMax = 200; //if there is over <<<< then it will be considered all white
+	
+	int LinePos = 0; //if its a negative the line is left if positive the line is right
+	int LineMid = 20; //this is the value that the line will be considered in the middle
+	
+	int rows = 320; //this is howmany rows
+	int col = 240; //this is the colls
+	int posCol = col/2; //this is where to scan
+	
+	int speed = 40; //speed that the robot will go
+	double kp = 0.40; //this is the value to work out the speed the higher this is the tighter turns it can do but it will look like its on crack
+	
+	int dv; //this is the difference in V between the wheels
+	int sLeft; //this is the speed of the left motor
+	int sRight; //this is the speed of the right motor
+	
+	
+	while(DoWindyLine){	
+		take_picture(); // takes the picture
+		
+		for(int i=0; i < rows; i++){ // the left half of the image is negative and the right is positive numbers	
+				Red = get_pixel(col - posCol, i, 0); // gets the RED
+				Green = get_pixel(col - posCol, i, 1); // gets the GREEN
+				Blue = get_pixel(col - posCol, i, 2); // gets the BLUE
+				White = (Red + Green + Blue)/3; //this is the white value
+				
+				if (White >= MinWhite) { //if the pixel is white
+					WOrNot = 1; //the pixel is white
+					WOrBTotal += 1;
+				} else { // if the pixel is not white
+					WOrNot = 0; //the pixel is not white
+				}
+				
+				//this will work out where the line is if its pos then its on the left if its on the right it will be negative
+				if (i < rows/2) { // if it is on the left side
+					LinePos += WOrNot; //if its on the left it adds one to the white pos
+				} else {
+					LinePos -= WOrNot; //takes one from the white pos
+				}
+			}		
+			//this will work out the speed of the motors
+			dv = (LinePos*kp);
+			sLeft = speed + dv;
+			sRight = speed - dv;
+			
+			if (LinePos < LineMid && LinePos > (LineMid*-1)) { //if it is going straight then it will increase the speed
+				sLeft += 20;
+				sRight += 20;
+			}
+			
+			if (WOrBTotal <= WOrBMin) { // if its majority black then go back
+				set_motor (1, sLeft*(-1));
+				set_motor (2, sRight*(-1));
+				cout << "GO BACK W OR B TOTAL " << WOrBTotal << "\n";
+			} else if (WOrBTotal > WOrBMin && WOrBTotal <= WOrBMax) { //if its on the line
+				set_motor (1, sLeft);
+				set_motor (2, sRight);
+				cout << "GO FORWARD W OR B TOTAL " << WOrBTotal << "\n";
+			} else { //if its mostly white stop (its at the end of the line (where it cahnges from wiggly line to straight))
+				set_motor (1, 0);
+				set_motor (2, 0);
+				cout << "STOP " << WOrBTotal << "\n";
+				DoWindyLine = false;
+			}
+			
+			cout << "LINE POS: " << LinePos << "\n";
+			LinePos = 0;
+			WOrBTotal = 0;			
+		}
+		return(0);	
+	}
+	
+	
+int line_Maze () {	
+
+	int Red = 0; //this is the value of the rex pixel
+	int Green = 0; //this is the value of the Green pixel
+	int Blue = 0; //this is the value of the Blue pixel
+	int White = 0; //this is the overall white value
+	
+	int MinWhite = 100; // all values over this is considered white
+	
+	int WOrNot; // if the pixel is white its a 1 if not its a 0
+	int WOrBTotal; //this is the over all amout of white in the pic 360 would be all white 0 would be all black
+	int WOrBMin = 40; //if there are less than <<< then it will be considered all black
+	int WOrBMax = 200; //if there is over <<<< then it will be considered all white
+	
+	int LinePos = 0; //if its a negative the line is left if positive the line is right
+	int LineMid = 20; //this is the value that the line will be considered in the middle
+	
+	int rows = 320; //this is howmany rows
+	int col = 240; //this is the colls
+	int posCol = col/2; //this is where to scan
+	
+	int speed = 40; //speed that the robot will go
+	double kp = 0.40; //this is the value to work out the speed the higher this is the tighter turns it can do but it will look like its on crack
+	
+	int dv; //this is the difference in V between the wheels
+	int sLeft; //this is the speed of the left motor
+	int sRight; //this is the speed of the right motor
+	
+	
+	while(DoLineMaze){	
+		take_picture(); // takes the picture
+		
+		for(int i=0; i < rows; i++){ // the left half of the image is negative and the right is positive numbers	
+				Red = get_pixel(col - posCol, i, 0); // gets the RED
+				Green = get_pixel(col - posCol, i, 1); // gets the GREEN
+				Blue = get_pixel(col - posCol, i, 2); // gets the BLUE
+				White = (Red + Green + Blue)/3; //this is the white value
+				
+				if (White >= MinWhite) { //if the pixel is white
+					WOrNot = 1; //the pixel is white
+					WOrBTotal += 1;
+				} else { // if the pixel is not white
+					WOrNot = 0; //the pixel is not white
+				}
+				
+				//this will work out where the line is if its pos then its on the left if its on the right it will be negative
+				if (i < rows/2) { // if it is on the left side
+					LinePos += WOrNot; //if its on the left it adds one to the white pos
+				} else {
+					LinePos -= WOrNot; //takes one from the white pos
+				}
+			}		
+			//this will work out the speed of the motors
+			dv = (LinePos*kp);
+			sLeft = speed + dv;
+			sRight = speed - dv;
+			
+			if (LinePos < LineMid && LinePos > (LineMid*-1)) { //if it is going straight then it will increase the speed
+				sLeft += 20;
+				sRight += 20;
+			}
+			
+			if (WOrBTotal <= WOrBMin) { // if its majority black then go back
+				turn_left90();
+			} else if (WOrBTotal > WOrBMin && WOrBTotal <= WOrBMax) { //if its on the line
+				set_motor (1, sLeft);
+				set_motor (2, sRight);
+				cout << "GO FORWARD W OR B TOTAL " << WOrBTotal << "\n";
+			} else { //if its mostly white stop (its at the end of the line (where it cahnges from wiggly line to straight))
+				turn_left90();
+			}
+			
+			cout << "LINE POS: " << LinePos << "\n";
+			LinePos = 0;
+			WOrBTotal = 0;			
+		}
+		return(0);	
+}
+	
+	
+int main () {
+	
+	DoWindyLine = true;
+	DoLineMaze = true;
+
+	init();
+	
+	line_detection();
+
+	cout << "all white detected Moving to Line Maze" << "\n";
+	
+	line_Maze();
+	
+}
+
