@@ -177,13 +177,27 @@ int line_Maze () {
 			}
 			
 			if (WOrBTotal <= WOrBMin) { // if its majority black then go back
-				turn_left90();
+				if (previousTurn == "Right") {
+					turn_left90();
+					previousTurn = "Left";
+				} else if (previousTurn == "Left") {
+					turn_right90();
+					turn_right90();
+					previousTurn = "Left";
+				}
 			} else if (WOrBTotal > WOrBMin && WOrBTotal <= WOrBMax) { //if its on the line
 				set_motor (1, sLeft);
 				set_motor (2, sRight);
 				cout << "GO FORWARD W OR B TOTAL " << WOrBTotal << "\n";
 			} else { //if its mostly white stop (its at the end of the line (where it cahnges from wiggly line to straight))
-				turn_left90();
+				if (previousTurn == "Right") {
+					turn_left90();
+					previousTurn = "Left";
+				} else if (previousTurn == "Left") {
+					turn_right90();
+					turn_right90();
+					previousTurn = "Left";
+				}
 			}
 			
 			cout << "LINE POS: " << LinePos << "\n";
